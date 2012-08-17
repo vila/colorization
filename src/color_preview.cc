@@ -24,12 +24,8 @@ void ColorPreview::set_color(cv::Scalar color) {
 }
 
 
-#include <iostream>
-
 void ColorPreview::paint_event(wxPaintEvent &event) {
-    // TODO maybe refactor this together with color_picker
-    std::cout << "paint_event\n";
-
+    // TODO maybe refactor this together with color_picker, scribblepanel
     wxPaintDC dc(this);
     render(dc);
 }
@@ -43,7 +39,6 @@ void ColorPreview::draw_now() {
 
 void ColorPreview::render(wxDC &dc) {
     dc.DrawBitmap(bitmap, 0, 0, false);
-    std::cout << "render\n";
 }
 
 void ColorPreview::set_preview_image(cv::Mat &im) {

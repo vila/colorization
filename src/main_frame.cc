@@ -1,6 +1,7 @@
 #include "main_frame.hh"
 #include "color_picker.hh"
 #include "color_preview.hh"
+#include "scribble_panel.hh"
 
 #include <wx/wx.h>
 #include <opencv2/opencv.hpp>
@@ -43,10 +44,17 @@ MainFrame::MainFrame() : wxFrame(NULL, -1, _("Colorization - Viktor Larsson"),
         vbox->Add(color_preview, 0, wxBOTTOM, 5);
 
     }
-    
 
+    // left pane
+    {
+        wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
+        left_pane->SetSizer(vbox);
+        
+        scribble_panel = new ScribblePanel(left_pane, color_picker, color_preview);
+        
+        vbox->Add(scribble_panel, 1, wxEXPAND);
+    }
     
-
 
     // Toolbar
     wxImage::AddHandler( new wxGIFHandler );
@@ -54,12 +62,26 @@ MainFrame::MainFrame() : wxFrame(NULL, -1, _("Colorization - Viktor Larsson"),
 
     wxToolBar *toolbar = CreateToolBar();
     toolbar->SetToolBitmapSize(wxSize(12,12));
-    toolbar->AddTool(wxID_EXIT, icon_open, _("Open image"));
+    toolbar->AddTool(wxID_OPEN, icon_open, _("Open image"));
     toolbar->AddTool(wxID_EXIT, icon_open, _("Open image"));
     toolbar->AddTool(wxID_EXIT, icon_open, _("Open image"));
     toolbar->AddTool(wxID_EXIT, icon_open, _("Open image"));
     toolbar->AddTool(wxID_EXIT, icon_open, _("Open image"));
     toolbar->Realize();
-    
+
+    Connect(wxID_OPEN, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(MainFrame::open_file));
+
     Centre();
+}
+
+void MainFrame::open_file(wxCommandEvent &event) {
+    wxFileDialog *dialog = new wxFileDialog(this, _("Choose image"), _("."));
+
+    if(dialog->ShowModal() == wxID_OK) {
+        // TODO support color images
+        cv::Mat img = cv::imread(std::string(dialog->GetPath().ToAscii()), 0);
+        
+        if(img.data != 0)
+            scribble_panel->set_image(img);
+    }
 }
