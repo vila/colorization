@@ -20,7 +20,7 @@ ColorPicker::ColorPicker(wxWindow *parent) : wxPanel(parent, -1, wxPoint(-1,-1),
 
     update_gamut();
     Connect(wxID_ANY, wxEVT_PAINT, wxPaintEventHandler(ColorPicker::paint_event));
-
+    Connect(wxID_ANY, wxEVT_LEFT_DOWN, wxMouseEventHandler(ColorPicker::mouse_event));
 }
 
 void ColorPicker::update_gamut() {
@@ -43,9 +43,21 @@ void ColorPicker::draw_now() {
 
 void ColorPicker::render(wxDC &dc) {
     dc.DrawBitmap(bitmap,0,0,false);    
+    dc.SetPen(*wxBLACK_PEN);
+    dc.DrawLine(v,0,v,255);
+    dc.DrawLine(0,u,255,u);
 }
 
 void ColorPicker::set_luminance(int new_y) {
     y = new_y;
     update_gamut();
+}
+
+void ColorPicker::mouse_event(wxMouseEvent &event) {
+    if(event.LeftDown()) {
+        u = event.m_y;
+        v = event.m_x;
+        Refresh(false);
+        // TODO update selected color and preview
+    }
 }

@@ -14,8 +14,8 @@ public:
     void draw_now();
 
 private:
-    void on_left_click();
-    void update_gamut(wxMouseEvent &event);
+    void mouse_event(wxMouseEvent &event);
+    void update_gamut();
     void paint_event(wxPaintEvent &event);
     void render(wxDC &dc);
 
