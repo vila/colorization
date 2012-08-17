@@ -11,7 +11,7 @@ ColorPicker::ColorPicker(wxWindow *parent,
                                              selected_color(sc),
                                              color_preview(cp)
 {
-    y = 127; u = 0; v = 0;
+    y = u = v = 128;
 
     cache.push_back(y * cv::Mat::ones(256,256,CV_8U));
     cache.push_back(cv::Mat::zeros(256,256,CV_8U));

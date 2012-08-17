@@ -82,6 +82,17 @@ void ScribblePanel::paint_event(wxPaintEvent &event) {
 
 
 void ScribblePanel::mouse_event(wxMouseEvent &event) {
-    // TODO select preview on right click, draw on left click
-    std::cout << "mouse event " << event.m_x << " " << event.m_y << "\n";
+    if(cache.empty())
+        return;
+
+    if(event.LeftUp()) {
+        // TODO
+    }
+    if(event.RightUp()) {
+        // TODO: use constants for preview size from ColorPreview
+        // TODO: handle edge cases
+        cv::Mat preview = image_yuv[0](cv::Rect(event.m_x-32, event.m_y-32,64,64));
+        color_preview->set_preview_image(preview);       
+        color_picker->set_luminance(image_yuv[0].at<uchar>(event.m_y, event.m_x));
+    }
 }
