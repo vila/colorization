@@ -1,9 +1,15 @@
 #include "color_picker.hh"
-#include <string>
+#include "selected_color.hh"
+
+#include <wx/wx.h>
 
 using namespace std;
 
-ColorPicker::ColorPicker(wxWindow *parent) : wxPanel(parent, -1, wxPoint(-1,-1), wxSize(256,256))
+ColorPicker::ColorPicker(wxWindow *parent,
+                         SelectedColor *sc,
+                         ColorPreview *cp) : wxPanel(parent, -1, wxPoint(-1,-1), wxSize(256,256)),
+                                             selected_color(sc),
+                                             color_preview(cp)
 {
     y = 127; u = 0; v = 0;
 
@@ -26,7 +32,7 @@ ColorPicker::ColorPicker(wxWindow *parent) : wxPanel(parent, -1, wxPoint(-1,-1),
 void ColorPicker::update_gamut() {
     cache[0].setTo(y);
     cv::merge(cache, gamut);
-    cv::cvtColor(gamut, gamut, CV_YUV2RGB);   
+    cv::cvtColor(gamut, gamut, CV_YCrCb2RGB);   
     bitmap = wxBitmap(wxImage(gamut.cols, gamut.rows, gamut.data, true));
     Refresh(false);
 }
@@ -51,6 +57,13 @@ void ColorPicker::render(wxDC &dc) {
 void ColorPicker::set_luminance(int new_y) {
     y = new_y;
     update_gamut();
+    color_updated();
+}
+
+/* Called when the other gui components need to be updated */
+void ColorPicker::color_updated() {
+    selected_color->set_color(y,u,v);
+    color_preview->set_color(y,u,v);
 }
 
 void ColorPicker::mouse_event(wxMouseEvent &event) {
@@ -58,6 +71,6 @@ void ColorPicker::mouse_event(wxMouseEvent &event) {
         u = event.m_y;
         v = event.m_x;
         Refresh(false);
-        // TODO update selected color and preview
+        color_updated();
     }
 }

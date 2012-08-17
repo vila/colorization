@@ -1,5 +1,6 @@
 #include "main_frame.hh"
 #include "color_picker.hh"
+#include "color_preview.hh"
 
 #include <wx/wx.h>
 #include <opencv2/opencv.hpp>
@@ -23,27 +24,27 @@ MainFrame::MainFrame() : wxFrame(NULL, -1, _("Colorization - Viktor Larsson"),
     { // debug
         wxColour c1,c2;
         left_pane->SetBackgroundColour(*wxRED);
-        right_pane->SetBackgroundColour(*wxBLUE);
+        //right_pane->SetBackgroundColour(*wxBLUE);
     }
 
     // right pane
     {
         wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
         right_pane->SetSizer(vbox);
+
+        selected_color = new SelectedColor(right_pane);
+        color_preview = new ColorPreview(right_pane);
         
-        color_picker = new ColorPicker(right_pane);
-        color_picker->set_luminance(25);
+        color_picker = new ColorPicker(right_pane, selected_color, color_preview);
+        color_picker->set_luminance(220);
         
-        // placeholder
-        wxPanel *selected_color = new wxPanel(right_pane, -1);
-        selected_color->SetBackgroundColour(*wxWHITE);
 
         // placeholder
         wxPanel *color_preview = new wxPanel(right_pane, -1, wxPoint(-1,-1), wxSize(256,256));
         color_preview->SetBackgroundColour(*wxBLACK);
 
         vbox->Add(color_picker, 0, wxBOTTOM, 5);
-        vbox->Add(selected_color, 0, wxBOTTOM, 5);
+        vbox->Add(selected_color, 0, wxBOTTOM | wxEXPAND, 5);
         vbox->Add(color_preview, 0, wxBOTTOM, 5);
 
     }
