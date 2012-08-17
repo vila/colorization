@@ -27,6 +27,7 @@ ColorPicker::ColorPicker(wxWindow *parent,
     update_gamut();
     Connect(wxID_ANY, wxEVT_PAINT, wxPaintEventHandler(ColorPicker::paint_event));
     Connect(wxID_ANY, wxEVT_LEFT_DOWN, wxMouseEventHandler(ColorPicker::mouse_event));
+    Connect(wxID_ANY, wxEVT_LEFT_UP, wxMouseEventHandler(ColorPicker::mouse_event));
 }
 
 void ColorPicker::update_gamut() {
@@ -63,14 +64,12 @@ void ColorPicker::set_luminance(int new_y) {
 /* Called when the other gui components need to be updated */
 void ColorPicker::color_updated() {
     selected_color->set_color(y,u,v);
-    color_preview->set_color(y,u,v);
+    color_preview->set_color(cv::Scalar(y,u,v));
 }
 
 void ColorPicker::mouse_event(wxMouseEvent &event) {
-    if(event.LeftDown()) {
-        u = event.m_y;
-        v = event.m_x;
-        Refresh(false);
-        color_updated();
-    }
+    u = event.m_y;
+    v = event.m_x;
+    Refresh(false);
+    color_updated();
 }

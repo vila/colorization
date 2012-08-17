@@ -37,11 +37,6 @@ MainFrame::MainFrame() : wxFrame(NULL, -1, _("Colorization - Viktor Larsson"),
         
         color_picker = new ColorPicker(right_pane, selected_color, color_preview);
         color_picker->set_luminance(220);
-        
-
-        // placeholder
-        wxPanel *color_preview = new wxPanel(right_pane, -1, wxPoint(-1,-1), wxSize(256,256));
-        color_preview->SetBackgroundColour(*wxBLACK);
 
         vbox->Add(color_picker, 0, wxBOTTOM, 5);
         vbox->Add(selected_color, 0, wxBOTTOM | wxEXPAND, 5);
