@@ -2,8 +2,9 @@
 #define MISC_H
 
 #include <wx/wx.h>
+#include <opencv2/opencv.hpp>
 
-wxColour convert_yuv2rgb(int y, int u, int v);
+wxColour ycbcr2rgb(const cv::Scalar &ycbcr);
 
 
 #endif /* MISC_H */

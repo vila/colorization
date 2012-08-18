@@ -26,6 +26,7 @@ private:
     ColorPicker *color_picker;
     ColorPreview *color_preview;
 
+    bool drawing;
     wxPanel *image_panel;
     std::vector<cv::Mat> image_yuv;
     cv::Mat cache;

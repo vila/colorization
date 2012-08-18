@@ -2,11 +2,12 @@
 #define SELECTED_COLOR_H
 
 #include <wx/wx.h>
+#include <opencv2/opencv.hpp>
 
 class SelectedColor : public wxPanel {
 public:
     SelectedColor(wxWindow *parent);
-    void set_color(int y, int u, int v);
+    void set_color(cv::Scalar &color);
 
 private:
     wxPanel *color_preview;

@@ -1,6 +1,7 @@
 #include "scribble_panel.hh"
 #include "color_preview.hh"
 #include "color_picker.hh"
+#include "misc.hh"
 
 #include <wx/wx.h>
 #include <opencv2/opencv.hpp>
@@ -9,18 +10,21 @@
 
 
 ScribblePanel::ScribblePanel(wxWindow *parent, ColorPicker *picker, ColorPreview *preview)
-    : wxScrolledWindow(parent, -1), color_picker(picker), color_preview(preview)
+    : wxScrolledWindow(parent, -1), color_picker(picker), color_preview(preview), drawing(false)
 {
     image_panel = new wxPanel(this, -1, wxPoint(-1,1), wxSize(250,250));
     image_panel->SetBackgroundColour(*wxBLACK);
 
     image_panel->Connect(wxID_ANY, wxEVT_PAINT,
                          wxPaintEventHandler(ScribblePanel::paint_event), NULL, this);
+    image_panel->Connect(wxID_ANY, wxEVT_LEFT_DOWN,
+                         wxMouseEventHandler(ScribblePanel::mouse_event),  NULL, this);
     image_panel->Connect(wxID_ANY, wxEVT_LEFT_UP,
+                         wxMouseEventHandler(ScribblePanel::mouse_event),  NULL, this);
+    image_panel->Connect(wxID_ANY, wxEVT_MOTION,
                          wxMouseEventHandler(ScribblePanel::mouse_event),  NULL, this);
     image_panel->Connect(wxID_ANY, wxEVT_RIGHT_UP,
                          wxMouseEventHandler(ScribblePanel::mouse_event),  NULL, this);
-    cache.data = 0;
 }
 
 void ScribblePanel::set_image(cv::Mat image, bool keep_uv) {
@@ -86,10 +90,28 @@ void ScribblePanel::mouse_event(wxMouseEvent &event) {
         return;
 
     if(event.LeftUp()) {
-        // TODO
+        update_bitmap();
+    }
+
+    if(event.LeftIsDown() && event.Dragging()) {
+        cv::Scalar color = color_picker->get_color();
+
+        for(int ii = -1; ii <= 1; ii++) {
+            for(int jj = -1; jj <= 1; jj++) {
+                image_yuv[1].at<uchar>(event.m_y + ii, event.m_x + jj) = color[1];
+                image_yuv[2].at<uchar>(event.m_y + ii, event.m_x + jj) = color[2];
+            }
+        }
+
+        // we half ass the drawing here and the update it when the left click is released
+        wxColour c = ycbcr2rgb(color);
+        wxClientDC dc(image_panel);
+        dc.SetPen(wxPen(c));
+        dc.SetBrush(wxBrush(c));
+        dc.DrawRectangle(event.m_x-1, event.m_y-1,3,3);
+        
     }
     if(event.RightUp()) {
-        // TODO: use constants for preview size from ColorPreview
         // TODO: handle edge cases
         cv::Mat preview = image_yuv[0](cv::Rect(event.m_x-32, event.m_y-32,64,64));
         color_preview->set_preview_image(preview);       

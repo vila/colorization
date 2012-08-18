@@ -15,6 +15,7 @@ public:
 
     void set_luminance(int y);
     void draw_now();
+    cv::Scalar get_color();
 
 private:
     void mouse_event(wxMouseEvent &event);
@@ -28,9 +29,7 @@ private:
     SelectedColor *selected_color;
     ColorPreview *color_preview;
 
-    int y;
-    int u;
-    int v;
+    cv::Scalar color;
     std::vector<cv::Mat> cache;
 
     cv::Mat gamut;

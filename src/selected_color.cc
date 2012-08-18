@@ -13,11 +13,9 @@ SelectedColor::SelectedColor(wxWindow *parent) : wxPanel(parent, -1) {
 
     hbox->Add(label, 0);
     hbox->Add(color_preview, 1, wxEXPAND | wxRIGHT | wxLEFT, 5);
-
-    set_color(127,0,0);
 }
 
-void SelectedColor::set_color(int y, int u, int v) {
-    color_preview->SetBackgroundColour(convert_yuv2rgb(y,u,v));
+void SelectedColor::set_color(cv::Scalar &color) {
+    color_preview->SetBackgroundColour(ycbcr2rgb(color));
 }
 
