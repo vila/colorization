@@ -28,21 +28,22 @@ public:
 private:
     void paint_event(wxPaintEvent &event);
     void mouse_event(wxMouseEvent &event);
-    void update_bitmap(cv::Rect rect = cv::Rect());
+    void update_bitmap();
     void render(wxDC &dc);
 
-    void draw(int x, int y);
-    void erase(int x, int y);
+    void draw(int x, int y, bool erase = false);
     void pick_color(int x, int y);
 
 private:
-    DrawingMode draw_mode;
     ColorPicker *color_picker;
     ColorPreview *color_preview;
-
     wxPanel *image_panel;
-    std::vector<cv::Mat> image_yuv;
-    cv::Mat cache;
+
+    DrawingMode draw_mode;
+    cv::Mat img_y;
+    cv::Mat img_rgb;
+    cv::Mat img_mask;
+    bool bitmap_dirty;
     wxBitmap bitmap;
 };
 
