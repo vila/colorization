@@ -16,6 +16,7 @@ public:
     MainFrame();
 
     void open_file(wxCommandEvent &event);
+    void save_file(wxCommandEvent &event);
 
 private:
     ScribblePanel *scribble_panel;

@@ -10,7 +10,7 @@
 
 
 ScribblePanel::ScribblePanel(wxWindow *parent, ColorPicker *picker, ColorPreview *preview)
-    : wxScrolledWindow(parent, -1), color_picker(picker), color_preview(preview), drawing(false)
+    : wxScrolledWindow(parent, -1), color_picker(picker), color_preview(preview)
 {
     image_panel = new wxPanel(this, -1, wxPoint(-1,1), wxSize(250,250));
     image_panel->SetBackgroundColour(*wxBLACK);
@@ -25,6 +25,8 @@ ScribblePanel::ScribblePanel(wxWindow *parent, ColorPicker *picker, ColorPreview
                          wxMouseEventHandler(ScribblePanel::mouse_event),  NULL, this);
     image_panel->Connect(wxID_ANY, wxEVT_RIGHT_UP,
                          wxMouseEventHandler(ScribblePanel::mouse_event),  NULL, this);
+
+    draw_mode = DrawingMode::DRAWING;
 }
 
 void ScribblePanel::set_image(cv::Mat image, bool keep_uv) {
@@ -84,37 +86,84 @@ void ScribblePanel::paint_event(wxPaintEvent &event) {
     render(dc);
 }
 
-
 void ScribblePanel::mouse_event(wxMouseEvent &event) {
     if(cache.empty())
         return;
 
-    if(event.LeftUp()) {
-        update_bitmap();
+    switch(draw_mode) {
+    case DRAWING:
+        if(event.LeftUp())
+            update_bitmap();
+        else if(event.LeftIsDown() && event.Dragging())
+            draw(event.m_x, event.m_y);
+        break;
+
+    case ERASING:
+        if(event.LeftUp())
+            update_bitmap();
+        else if(event.LeftIsDown() && event.Dragging())
+            erase(event.m_x, event.m_y);
+        break;
+
+    case COLOR_PICK:
+        if(event.LeftUp())
+            pick_color(event.m_x, event.m_y);
     }
 
-    if(event.LeftIsDown() && event.Dragging()) {
-        cv::Scalar color = color_picker->get_color();
-
-        for(int ii = -1; ii <= 1; ii++) {
-            for(int jj = -1; jj <= 1; jj++) {
-                image_yuv[1].at<uchar>(event.m_y + ii, event.m_x + jj) = color[1];
-                image_yuv[2].at<uchar>(event.m_y + ii, event.m_x + jj) = color[2];
-            }
-        }
-
-        // we half ass the drawing here and the update it when the left click is released
-        wxColour c = ycbcr2rgb(color);
-        wxClientDC dc(image_panel);
-        dc.SetPen(wxPen(c));
-        dc.SetBrush(wxBrush(c));
-        dc.DrawRectangle(event.m_x-1, event.m_y-1,3,3);
-        
-    }
     if(event.RightUp()) {
         // TODO: handle edge cases
         cv::Mat preview = image_yuv[0](cv::Rect(event.m_x-32, event.m_y-32,64,64));
         color_preview->set_preview_image(preview);       
         color_picker->set_luminance(image_yuv[0].at<uchar>(event.m_y, event.m_x));
+    }
+}
+
+
+void ScribblePanel::draw(int x, int y) {
+    int bsize = 5;
+    int bhalf = bsize/2;
+
+    cv::Scalar color = color_picker->get_color();
+
+    cv::Rect brush(x-bhalf,y-bhalf,bsize,bsize);
+    image_yuv[1](brush).setTo(color[1]);
+    image_yuv[2](brush).setTo(color[2]);
+    
+    // we half ass the drawing here and the update it when the left click is released
+    wxColour c = ycbcr2rgb(color);
+    wxClientDC dc(image_panel);
+    dc.SetPen(wxPen(c));
+    dc.SetBrush(wxBrush(c));
+    dc.DrawRectangle(x-bhalf, y-bhalf,bsize,bsize);
+}
+
+void ScribblePanel::erase(int x, int y) {
+    int bsize = 5;
+    int bhalf = bsize/2;
+
+    cv::Rect brush(x-bhalf,y-bhalf,bsize,bsize);
+    // 128 corresponds to 0 in YCbCr since it is shifted to be non negative
+    image_yuv[1](brush).setTo(128);
+    image_yuv[2](brush).setTo(128);
+    
+    // we half ass the drawing here and the update it when the left click is released
+    cv::Scalar color(image_yuv[0].at<uchar>(y,x), 128, 128);
+    wxColour c = ycbcr2rgb(color);
+    wxClientDC dc(image_panel);
+    dc.SetPen(wxPen(c));
+    dc.SetBrush(wxBrush(c));
+    dc.DrawRectangle(x-bhalf, y-bhalf,bsize,bsize);
+}
+
+void ScribblePanel::pick_color(int x, int y) {
+    // TODO
+}
+
+
+void ScribblePanel::update_drawing_mode(wxCommandEvent &event) {
+    switch(event.GetId()) {
+    case DRAWING:    draw_mode = DRAWING; break;
+    case ERASING:    draw_mode = ERASING; break;
+    case COLOR_PICK: draw_mode = COLOR_PICK; break;
     }
 }
