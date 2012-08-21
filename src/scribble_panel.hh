@@ -15,8 +15,10 @@ public:
 
     void set_image(cv::Mat image, bool keep_uv = false);
     void draw_now();
-
     void update_drawing_mode(wxCommandEvent &event);
+
+    cv::Mat get_rgb() const;
+    cv::Mat get_mask() const;
 
     // These are used for IDs for the toolbar
     enum DrawingMode {

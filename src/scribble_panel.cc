@@ -35,6 +35,7 @@ void ScribblePanel::set_image(cv::Mat image, bool keep_uv) {
 
 
     img_y = image.clone();
+    img_rgb = cv::Mat::zeros(img_y.cols, img_y.rows, CV_8UC3);
     cv::cvtColor(img_y, img_rgb, CV_GRAY2RGB);
 
     int m = image.rows;
@@ -46,6 +47,7 @@ void ScribblePanel::set_image(cv::Mat image, bool keep_uv) {
     image_panel->SetSize(-1,-1, n, m);
     
     bitmap_dirty = true;
+    Refresh(false);
 }
 
 void ScribblePanel::update_bitmap() {
@@ -112,9 +114,10 @@ void ScribblePanel::draw(int x, int y, bool erase) {
     cv::cvtColor(dst, dst, CV_YCrCb2RGB);
     
     // update the rgb image and mark the bitmap as dirty
+    cv::Mat img_rgb_roi = img_rgb(brush);
+    dst.copyTo(img_rgb_roi);
+    img_mask(brush).setTo(erase ? 0 : 255);
 
-    img_mask(brush).setTo(erase ? 0 : 1);
-    img_rgb(brush) = dst;
     bitmap_dirty = true;
 
     wxClientDC dc(image_panel);
@@ -134,3 +137,11 @@ void ScribblePanel::update_drawing_mode(wxCommandEvent &event) {
     case COLOR_PICK: draw_mode = COLOR_PICK; break;
     }
 }
+
+cv::Mat ScribblePanel::get_rgb() const {
+    return img_rgb;
+}
+cv::Mat ScribblePanel::get_mask() const {
+    return img_mask;
+}
+

@@ -2,6 +2,7 @@
 #include "color_picker.hh"
 #include "color_preview.hh"
 #include "scribble_panel.hh"
+#include "misc.hh"
 
 #include <wx/wx.h>
 #include <opencv2/opencv.hpp>
@@ -93,11 +94,11 @@ MainFrame::MainFrame() : wxFrame(NULL, -1, _("Colorization - Viktor Larsson"),
 }
 
 void MainFrame::open_file(wxCommandEvent &event) {
-    wxFileDialog *dialog = new wxFileDialog(this, _("Choose image"), _("."));
+    wxFileDialog dialog(this, _("Choose image"), _("."));
 
-    if(dialog->ShowModal() == wxID_OK) {
+    if(dialog.ShowModal() == wxID_OK) {
         // TODO support color images
-        cv::Mat img = cv::imread(std::string(dialog->GetPath().ToAscii()), 0);
+        cv::Mat img = cv::imread(std::string(dialog.GetPath().ToAscii()), 0);
         
         if(img.data != 0)
             scribble_panel->set_image(img);
@@ -105,13 +106,35 @@ void MainFrame::open_file(wxCommandEvent &event) {
 }
 
 void MainFrame::save_file(wxCommandEvent &event) {
-    wxFileDialog *dialog = new wxFileDialog(this, _("Choose image"), _("."));
+    cv::Mat img_rgb = scribble_panel->get_rgb();
+    cv::Mat img_mask = scribble_panel->get_mask();
 
-    if(dialog->ShowModal() == wxID_OK) {
-        // TODO support color images
-        cv::Mat img = cv::imread(std::string(dialog->GetPath().ToAscii()), 0);
+    if(img_rgb.empty())
+        return;
+
+    wxFileDialog dialog(this, _("Save image"), _("."), _(""),
+                        _("*.bmp"), wxFD_SAVE);
+
+    if(dialog.ShowModal() == wxID_OK) {
+
+        std::string filename(dialog.GetPath().ToAscii());
+
+        if(!ends_with(filename, ".bmp", true)) {
+            filename = filename + ".bmp";
+        }
         
-        if(img.data != 0)
-            scribble_panel->set_image(img);
+        std::string mask_filename = filename.substr(0,MAX(0,filename.length()-4)) + "_m.bmp";
+
+        bool success = cv::imwrite(filename, img_rgb) && cv::imwrite(mask_filename, img_mask);
+
+        if(success) {
+            wxMessageDialog msg(this, _("Image saved successfully."), _("Colorization"),
+                                wxOK|wxCENTRE);
+            msg.ShowModal();
+        } else {
+            wxMessageDialog msg(this, _("Image saved successfully."), _("Colorization"),
+                                 wxOK|wxICON_ERROR|wxCENTRE);
+            msg.ShowModal();
+        }
     }
 }
