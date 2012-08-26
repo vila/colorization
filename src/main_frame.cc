@@ -112,6 +112,10 @@ void MainFrame::save_file(wxCommandEvent &event) {
     if(img_rgb.empty())
         return;
 
+    // we need the image to be in BGR instead for saving
+    cv::Mat img_bgr;    
+    cv::cvtColor(img_rgb, img_bgr, CV_RGB2BGR);
+
     wxFileDialog dialog(this, _("Save image"), _("."), _(""),
                         _("*.bmp"), wxFD_SAVE);
 
@@ -125,7 +129,7 @@ void MainFrame::save_file(wxCommandEvent &event) {
         
         std::string mask_filename = filename.substr(0,MAX(0,filename.length()-4)) + "_m.bmp";
 
-        bool success = cv::imwrite(filename, img_rgb) && cv::imwrite(mask_filename, img_mask);
+        bool success = cv::imwrite(filename, img_bgr) && cv::imwrite(mask_filename, img_mask);
 
         if(success) {
             wxMessageDialog msg(this, _("Image saved successfully."), _("Colorization"),
